@@ -18,8 +18,13 @@ interface MonthlyUsageFieldProps {
 };
 
 interface UserParameters {
+  // kWh used each month.
   monthlyUsage: Array<number>;
+  // Controls if we consider variable rates.
   considerVariableRates: boolean;
+  // Restricts consideration to suppliers who report the proportion of
+  // renewable energy they source is guaranteed to meet this threshold.
+  renewableThreshold: number;
 }
 
 interface SupplierViewProps extends PipelineStepProps<UserParameters> {}
@@ -35,6 +40,8 @@ interface SquareFootInputProps extends PipelineStepProps<UserParameters> {}
 interface NumberOfBedroomsInputProps extends PipelineStepProps<UserParameters> {}
 
 interface VariableRateViewProps extends PipelineStepProps<UserParameters> {}
+
+interface RenewablePreferenceViewProps extends PipelineStepProps<UserParameters> {}
 
 interface BackButtonProps {
   goBack?: () => void;
@@ -103,13 +110,18 @@ const SupplierSelectionApp = (): JSX.Element => (
       <NumberOfBedroomsInputView/>
       <Pipeline>
         <VariableRateView/>
+        <RenewablePreferenceView/>
         <SupplierView/>
       </Pipeline>
     </Pipeline>
 );
 
 const SupplierView = (props: SupplierViewProps): JSX.Element => {
-  const orderedSuppliers = bestOffers(props.item?.monthlyUsage || [], props.item?.considerVariableRates);
+  const orderedSuppliers = bestOffers(
+    props.item?.monthlyUsage || [],
+    props.item?.considerVariableRates,
+    props.item?.renewableThreshold || 0.0,
+  );
   const bestOffer = orderedSuppliers[0];
   return (
     <>
@@ -358,6 +370,36 @@ const VariableRateView = (props: VariableRateViewProps) => {
   );
 };
 
+const RenewablePreferenceView = (props: RenewablePreferenceViewProps): JSX.Element => {
+  const onClick = (renewableThreshold: number) => {
+    if (props.advance !== undefined) {
+      props.advance({
+        ...(props.item || getDefaultParameters()),
+        renewableThreshold,
+      });
+    }
+  };
+
+  return (
+    <>
+      <h2>How important is using renewable energy to you?</h2>
+      <h3>Some suppliers promise to purchase energy from renewable energy
+          generators. Renewable energy is usually more expensive, but it
+          is more environmentally friendly.
+      </h3>
+      <button type="button" onClick={() => onClick(0.0)}>
+        Not important at all.
+      </button>
+      <button type="button" onClick={() => onClick(25.0)}>
+        Somewhat important.
+      </button>
+      <button type="button" onClick={() => onClick(50.0)}>
+        Very important.
+      </button>
+    </>
+  );
+};
+
 // According to Google, this is usally true.
 const kWhPerSquareFoot = .5;
 
@@ -368,6 +410,7 @@ const estimateMonthlyEnergyFromSquareFeet =
 const getDefaultParameters = (): UserParameters => ({
   monthlyUsage: [],
   considerVariableRates: false,
+  renewableThreshold: 0.0,
 });
 
 const capitalize = (str: string): string => {

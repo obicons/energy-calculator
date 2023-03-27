@@ -11,25 +11,28 @@ type OfferJSON = {
   PromotionalOffer: {
     IsPromotionalOffer: string;
   };
+  Renewable: string;
 };
 
 export class Offer {
-  supplier: string
-  pricePerkwH: number
-  monthlyPrice: number
-  isVariable: boolean
-  isPromotionalOffer: boolean
-  supplierURL: string
+  supplier: string;
+  pricePerkwH: number;
+  monthlyPrice: number;
+  isVariable: boolean;
+  isPromotionalOffer: boolean;
+  supplierURL: string;
+  renewable: number;
 
   constructor(supplier: string, pricePerkwH: number, monthlyPrice: number,
               variable: boolean, isPromotionalOffer: boolean,
-              supplierURL: string) {
+              supplierURL: string, renewable: number) {
       this.supplier = supplier;
       this.pricePerkwH = pricePerkwH;
       this.monthlyPrice = monthlyPrice;
       this.isVariable = variable;
       this.isPromotionalOffer = isPromotionalOffer;
       this.supplierURL = supplierURL;
+      this.renewable = renewable;
   }
 
   static fromXMLString(xml: string): Array<Offer> {
@@ -42,6 +45,7 @@ export class Offer {
       offer['RateType'] !== 'Fixed',
       offer['PromotionalOffer']['IsPromotionalOffer'] === 'Yes',
       offer['SupplierInfo']['SupplierWebSiteUrl'],
+      parseFloat(offer['Renewable']),
     ));
   }
 
@@ -1452,9 +1456,12 @@ export function getOffers(): Array<Offer> {
 }
 
 // Returns an array sorted so that i < j => a[i] "is a better deal than" a[j].
-export function bestOffers(usageData: Array<number>, useVariableRates: boolean = false): Array<Offer> {
+export function bestOffers(usageData: Array<number>,
+                           useVariableRates: boolean = false,
+                           renewableThreshold: number = 0.0): Array<Offer> {
   return getOffers().
               filter((offer) => (!offer.isVariable || useVariableRates) && !offer.isPromotionalOffer).
+              filter((offer) => offer.renewable >= renewableThreshold).
               sort((a, b) => usageData.map((d) => a.getPrice(d)).reduce((x, y) => x + y, 0) -
                               usageData.map((d) => b.getPrice(d)).reduce((x, y) => x + y, 0));
 }
