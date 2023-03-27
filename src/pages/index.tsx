@@ -28,6 +28,8 @@ interface UserParameters {
   renewableThreshold: number;
 }
 
+interface LandingPageViewProps extends PipelineStepProps<UserParameters> {}
+
 interface SupplierViewProps extends PipelineStepProps<UserParameters> {}
 
 interface MonthlyUsageFormProps extends PipelineStepProps<UserParameters> {}
@@ -115,6 +117,7 @@ const Pipeline = <T,>(props: PipelineProps<T>): JSX.Element => {
 
 const SupplierSelectionApp = (): JSX.Element => (
     <Pipeline item={getDefaultParameters()}>
+      <LandingPageView/>
       <MonthlyUsageInputView/>
       <SquareFootInputView/>
       <NumberOfBedroomsInputView/>
@@ -126,6 +129,29 @@ const SupplierSelectionApp = (): JSX.Element => (
     </Pipeline>
 );
 
+const LandingPageView = (props: LandingPageViewProps): JSX.Element => (
+  <>
+    <div className={styles.question}>
+      EnRX:
+      <br/>
+      Find the energy supplier that&apos;s right for you.
+    </div>
+    <div className={styles.description}>
+      <p>
+        Choosing an energy supplier is tricky. We&apos;re here to help.
+        Just answer three simple questions, and we&apos;ll show you a supplier
+        that&apos;s right for you.
+      </p>
+      <br/>
+      <button
+        className={styles.promptbutton}
+        onClick={() => {props.advance !== undefined ? props.advance(getDefaultParameters()) : null}}>
+        Get Started
+      </button>
+    </div>
+  </>
+);
+
 const SupplierView = (props: SupplierViewProps): JSX.Element => {
   const orderedSuppliers = bestOffers(
     props.item?.monthlyUsage || [],
@@ -135,15 +161,17 @@ const SupplierView = (props: SupplierViewProps): JSX.Element => {
   const bestOffer = orderedSuppliers[0];
   return (
     <>
-      <h2>Based on your answers, this supplier looks like the best option for you:</h2>
-      <strong><a href={bestOffer.supplierURL}>{bestOffer.supplier}</a></strong>
-      <p>${bestOffer.pricePerkwH} per kWh,
-         ${bestOffer.monthlyPrice} monthly service price,
-         {bestOffer.isVariable ? " variable rate. " : " fixed rate. "}
-         <br/>
-         Remember: Carefully review any agreement you sign, and make sure the
-         rates you agree to match the advertised rates.
-      </p>
+      <div className={styles.question}>Based on your answers, this supplier looks like the best option for you:</div>
+      <div className={styles.description}>
+        <p><strong><a href={bestOffer.supplierURL}>{bestOffer.supplier}: </a></strong>
+            ${bestOffer.pricePerkwH} per kWh,
+            ${bestOffer.monthlyPrice} monthly service price,
+            {bestOffer.isVariable ? " variable rate. " : " fixed rate. "}
+            <br/>
+            Remember: Carefully review any agreement you sign, and make sure the
+            rates you agree to match the advertised rates.
+        </p>
+      </div>
     </>
   );
 };
@@ -151,13 +179,15 @@ const SupplierView = (props: SupplierViewProps): JSX.Element => {
 const MonthlyUsageInputView = (props: MonthlyUsageFormProps): JSX.Element => (
   <>
     <div id="header">
-      <h2>How much energy do you use each month?</h2>
-      <h3>
-        You can find this data on your power bill.
-        We need this data to determine the cheapest supplier that satisfies your demand because
-        some suppliers charge fixed monthly service fees in exchange for a lower price per kWh.
-        This is a good deal if your demand is large enough.
-      </h3>
+      <div className={styles.question}>Question 1: How much energy do you use each month?</div>
+      <div className={styles.description}>
+        <p>
+          You can find this data on your power bill.
+          We need this to determine the cheapest supplier that satisfies your demand because
+          some suppliers charge fixed monthly service fees in exchange for a lower price per kWh.
+          This is a good deal if your demand is large enough.
+        </p>
+      </div>
     </div>
     <div id="monthly-usage-app">
       <MonthlyUsageForm {...props}/>
@@ -198,15 +228,15 @@ const MonthlyUsageForm = (props: MonthlyUsageFormProps): JSX.Element => {
   const readyToSubmit = Array.from(monthToUsage.keys()).length === months.length;
 
   return (
-    <form onSubmit={onSubmit}>
+    <form onSubmit={onSubmit} className={styles.form}>
       {
         months.map(month => <MonthlyUsageField
             month={month}
             updateUsage={(usage) => updateUsage(month, usage)}
             key={month}/>)
       }
-      <button type="button" onClick={onSkip} id="monthly-usage-not-sure-button">I&apos;m not sure</button>
-      <button type="submit" id="monthly-usage-next-button" disabled={!readyToSubmit}>Next</button>
+      <button className={styles.promptbutton} type="button" onClick={onSkip} id="monthly-usage-not-sure-button">I&apos;m not sure</button>
+      <button className={styles.promptbutton} type="submit" id="monthly-usage-next-button" disabled={!readyToSubmit}>Next</button>
     </form>
   );
 };
@@ -219,8 +249,9 @@ const MonthlyUsageField = (props: MonthlyUsageFieldProps): JSX.Element => {
   return (
     <>
       <input
+        className={styles.promptinput}
         id={props.month + "-usage"}
-        placeholder={capitalize(props.month) + " kWh"}
+        placeholder={"Enter " + capitalize(props.month) + " kWh"}
         onChange={handleInputChange}
         required={true}
         pattern="([0-9],?)+"
@@ -233,9 +264,13 @@ const MonthlyUsageField = (props: MonthlyUsageFieldProps): JSX.Element => {
 const SquareFootInputView = (props: SquareFootInputProps): JSX.Element => (
   <>
     <div id="header">
-      <h2>How large is your home?</h2>
-      <h3>We&apos;ll do our best to estimate your energy consumption based on your home size.
-          Note that the result will be less accurate than if you used historical data.</h3>
+      <div className={styles.question}>How large is your home?</div>
+      <div className={styles.description}>
+        <p>
+          We&apos;ll do our best to estimate your energy consumption based on your home size.
+          Note that the result will be less accurate than if you used historical data.
+        </p>
+      </div>
     </div>
     <div id="monthly-usage-app">
       <SquareFootInputForm {...props}/>
@@ -270,8 +305,9 @@ const SquareFootInputForm = (props: SquareFootInputProps): JSX.Element => {
   const readyToSubmit = !isNaN(squareFeet);
 
   return (
-    <form onSubmit={onSubmit}>
+    <form onSubmit={onSubmit} className={styles.form}>
       <input
+        className={styles.promptinput}
         onChange={handleInputChange}
         type="text"
         placeholder="House size (square feet)"
@@ -279,8 +315,8 @@ const SquareFootInputForm = (props: SquareFootInputProps): JSX.Element => {
         pattern="([0-9],?)+"
         title="This field must be a number"/>
       <br/>
-      <button type="button" onClick={onSkip}>I&apos;m not sure</button>
-      <button type="submit" disabled={!readyToSubmit}>Next</button>
+      <button className={styles.promptbutton} type="button" onClick={onSkip}>I&apos;m not sure</button>
+      <button className={styles.promptbutton} type="submit" disabled={!readyToSubmit}>Next</button>
     </form>
   );
 };
@@ -288,10 +324,14 @@ const SquareFootInputForm = (props: SquareFootInputProps): JSX.Element => {
 const NumberOfBedroomsInputView = (props: NumberOfBedroomsInputProps): JSX.Element => (
   <>
     <div id="header">
-      <h2>How many bedrooms do you have?</h2>
-      <h3>We&apos;ll do our best to estimate your home size based on the number of bedrooms you have.
+      <div className={styles.question}>How many bedrooms do you have?</div>
+      <div className={styles.description}>
+        <p>
+          We&apos;ll do our best to estimate your home size based on the number of bedrooms you have.
           Then, we&apos;ll use your home size to estimate your energy usage.
-          Note that the result will be less accurate than if you used historical data.</h3>
+          Note that the result will be less accurate than if you used historical data.
+        </p>
+      </div>
     </div>
     <div id="monthly-usage-app">
       <NumberOfBedroomsInputForm {...props}/>
@@ -330,8 +370,9 @@ const NumberOfBedroomsInputForm = (props: NumberOfBedroomsInputProps): JSX.Eleme
   const readyToSubmit = !isNaN(bedrooms);
 
   return (
-    <form onSubmit={onSubmit}>
+    <form className={styles.form} onSubmit={onSubmit}>
       <input
+        className={styles.promptinput}
         onChange={handleInputChange}
         type="text"
         placeholder="Number of bedrooms"
@@ -339,7 +380,7 @@ const NumberOfBedroomsInputForm = (props: NumberOfBedroomsInputProps): JSX.Eleme
         pattern="([0-9],?)+"
         title="This field must be a number"/>
       <br/>
-      <button type="submit" disabled={!readyToSubmit}>Next</button>
+      <button className={styles.promptbutton} type="submit" disabled={!readyToSubmit}>Next</button>
     </form>
   );
 };
@@ -356,13 +397,17 @@ const VariableRateView = (props: VariableRateViewProps) => {
 
   return (
     <>
-      <h2>Are you interested in variable rate suppliers?</h2>
-      <h3>Variable rate suppliers often offer cheaper prices per kWh, but
-          can increase prices when energy demand is high.</h3>
-      <button type="button" onClick={() => onClick(true)}>
+      <div className={styles.question}>Question 2: Are you interested in variable rate suppliers?</div>
+      <div className={styles.description}>
+        <p>
+          Variable rate suppliers often offer cheaper prices per kWh, but
+          can increase prices when energy demand is high.
+        </p>
+      </div>
+      <button className={styles.promptbutton} type="button" onClick={() => onClick(true)}>
         Yes, use variable rate suppliers.
       </button>
-      <button type="button" onClick={() => onClick(false)}>
+      <button className={styles.promptbutton} type="button" onClick={() => onClick(false)}>
         No, don&apos;t use variable rate suppliers.
       </button>
     </>
@@ -381,18 +426,21 @@ const RenewablePreferenceView = (props: RenewablePreferenceViewProps): JSX.Eleme
 
   return (
     <>
-      <h2>How important is using renewable energy to you?</h2>
-      <h3>Some suppliers promise to purchase energy from renewable energy
+      <div className={styles.question}>Question 3: How important is using renewable energy to you?</div>
+      <div className={styles.description}>
+        <p>
+          Some suppliers promise to purchase energy from renewable energy
           generators. Renewable energy is usually more expensive, but it
           is more environmentally friendly.
-      </h3>
-      <button type="button" onClick={() => onClick(0.0)}>
+        </p>
+      </div>
+      <button className={styles.promptbutton} type="button" onClick={() => onClick(0.0)}>
         Not important at all.
       </button>
-      <button type="button" onClick={() => onClick(25.0)}>
+      <button className={styles.promptbutton} type="button" onClick={() => onClick(25.0)}>
         Somewhat important.
       </button>
-      <button type="button" onClick={() => onClick(50.0)}>
+      <button className={styles.promptbutton} type="button" onClick={() => onClick(50.0)}>
         Very important.
       </button>
     </>

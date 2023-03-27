@@ -1,4 +1,75 @@
 .energyselection {
   border-style: solid;
   cursor: pointer;
+  margin: 0;
+}
+
+.main {
+  background-color: #2D822A;
+  color: white;
+  font-family: sans-serif;
+  height: 100vh;
+  min-height: max-content;
+  position: absolute;
+  overflow: auto;
+  width: 100%;
+}
+
+.question {
+  color: white;
+  font-weight: bold;
+  font-size: xx-large;
+  text-align: center;
+  margin: 5%;
+}
+
+.description {
+  color: white;
+  font-weight: bold;
+  font-size: medium;
+  text-align: center;
+  margin-left: 4%;
+  margin-right: 4%;
+  margin-bottom: 4%;
+}
+
+.description p {
+  text-align: justify;
+  display: inline-block;
+}
+
+.form {
+  text-align: center;
+}
+
+.form input {
+  border: none;
+  border-radius: 16px;
+  margin: .2%;
+  padding: .3%;
+}
+
+.promptbutton {
+  border-radius: 16px;
+  color: #2D822A;
+  background-color: white;
+  margin: .2%;
+  margin-top: 2%;
+  padding: 1%;
+  border: none;
+  width: 14em;
+}
+
+.promptbutton:hover {
+  cursor: pointer;
+}
+
+.promptbutton:disabled {
+  background-color: #2D822A;
+  background-color: lightgray;
+  cursor: default;
+}
+
+.promptinput {
+  font-size: 16px;
 }
