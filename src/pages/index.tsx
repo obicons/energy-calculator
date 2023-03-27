@@ -8,6 +8,7 @@ interface PipelineStepProps<T> {
   item?: T;
   advance?: (newItem: T) => void;
   jumpToEnd?: (newItem: T) => void;
+  goBack?: () => void;
 }
 
 interface MonthlyUsageFieldProps {
@@ -28,6 +29,10 @@ interface PipelineProps<T> {
 interface SquareFootInputProps extends PipelineStepProps<Array<number>> {}
 
 interface NumberOfBedroomsInputProps extends PipelineStepProps<Array<number>> {}
+
+interface BackButtonProps {
+  goBack?: () => void;
+}
 
 const months = [
   'january', 'february', 'march', 'april', 'may', 'june', 'july',
@@ -57,11 +62,17 @@ const Pipeline = <T,>(props: PipelineProps<T>): JSX.Element => {
 
   const advance = (x: T) => {
     setValue({index: value.index + 1, item: x});
-  }
+  };
 
   const jumpToEnd = (x: T) => {
     setValue({index: React.Children.toArray(props.children).length - 1, item: x});
-  }
+  };
+
+  const goBack = () => {
+    if (value.index > 0) {
+      setValue({index: value.index - 1, item: value.item});
+    }
+  };
 
   let child = React.Children.toArray(props.children).at(value.index);
   if (React.isValidElement<PipelineStepProps<T>>(child)) {
@@ -70,6 +81,7 @@ const Pipeline = <T,>(props: PipelineProps<T>): JSX.Element => {
       {
         advance,
         jumpToEnd,
+        goBack,
         item: value.item,
       },
     );
@@ -146,8 +158,9 @@ const MonthlyUsageForm = (props: MonthlyUsageFormProps): JSX.Element => {
             updateUsage={(usage) => updateUsage(month, usage)}
             key={month}/>)
       }
-      <button type="submit" id="monthly-usage-next-button">Next</button>
+      <BackButton/>
       <button type="button" onClick={onSkip} id="monthly-usage-not-sure-button">I&apos;m not sure</button>
+      <button type="submit" id="monthly-usage-next-button">Next</button>
     </form>
   );
 };
@@ -215,8 +228,9 @@ const SquareFootInputForm = (props: SquareFootInputProps): JSX.Element => {
         pattern="([0-9],?)+"
         title="This field must be a number"/>
       <br/>
-      <button type="submit">Next</button>
+      <BackButton goBack={props.goBack}/>
       <button type="button" onClick={onSkip}>I&apos;m not sure</button>
+      <button type="submit">Next</button>
     </form>
   );
 };
@@ -270,10 +284,19 @@ const NumberOfBedroomsInputForm = (props: NumberOfBedroomsInputProps): JSX.Eleme
         pattern="([0-9],?)+"
         title="This field must be a number"/>
       <br/>
+      <BackButton goBack={props.goBack}/>
       <button type="submit">Next</button>
     </form>
   );
 };
+
+const BackButton = (props: BackButtonProps): JSX.Element => (
+    <button type="button"
+            onClick={props.goBack}
+            disabled={props.goBack === undefined}>
+      Back
+    </button>
+);
 
 // According to Google, this is usally true.
 const kWhPerSquareFoot = .5;
