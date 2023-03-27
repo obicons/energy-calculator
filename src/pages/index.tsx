@@ -147,8 +147,13 @@ const MonthlyUsageForm = (props: MonthlyUsageFormProps): JSX.Element => {
   const [monthToUsage, setMonthToUsage] = useState(new Map<string, number>());
 
   const updateUsage = (month: string, usage: number) => {
-    monthToUsage.set(month, usage);
-    setMonthToUsage(monthToUsage);
+    const newMonthToUsage = new Map(monthToUsage);
+    if (!isNaN(usage)) {
+      newMonthToUsage.set(month, usage);
+    } else {
+      newMonthToUsage.delete(month);
+    }
+    setMonthToUsage(newMonthToUsage);
   }
 
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -168,6 +173,8 @@ const MonthlyUsageForm = (props: MonthlyUsageFormProps): JSX.Element => {
     }
   };
 
+  const readyToSubmit = Array.from(monthToUsage.keys()).length === months.length;
+
   return (
     <form onSubmit={onSubmit}>
       {
@@ -178,7 +185,7 @@ const MonthlyUsageForm = (props: MonthlyUsageFormProps): JSX.Element => {
       }
       <BackButton/>
       <button type="button" onClick={onSkip} id="monthly-usage-not-sure-button">I&apos;m not sure</button>
-      <button type="submit" id="monthly-usage-next-button">Next</button>
+      <button type="submit" id="monthly-usage-next-button" disabled={!readyToSubmit}>Next</button>
     </form>
   );
 };
@@ -216,7 +223,7 @@ const SquareFootInputView = (props: SquareFootInputProps): JSX.Element => (
 );
 
 const SquareFootInputForm = (props: SquareFootInputProps): JSX.Element => {
-  const [squareFeet, updateSquareFeet] = useState(0.0);
+  const [squareFeet, updateSquareFeet] = useState(parseFloat('NaN'));
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     updateSquareFeet(parseFloat(event.currentTarget.value.replaceAll(',', '')));
@@ -239,6 +246,8 @@ const SquareFootInputForm = (props: SquareFootInputProps): JSX.Element => {
     }
   };
 
+  const readyToSubmit = !isNaN(squareFeet);
+
   return (
     <form onSubmit={onSubmit}>
       <input
@@ -251,7 +260,7 @@ const SquareFootInputForm = (props: SquareFootInputProps): JSX.Element => {
       <br/>
       <BackButton goBack={props.goBack}/>
       <button type="button" onClick={onSkip}>I&apos;m not sure</button>
-      <button type="submit">Next</button>
+      <button type="submit" disabled={!readyToSubmit}>Next</button>
     </form>
   );
 };
@@ -271,7 +280,7 @@ const NumberOfBedroomsInputView = (props: NumberOfBedroomsInputProps): JSX.Eleme
 );
 
 const NumberOfBedroomsInputForm = (props: NumberOfBedroomsInputProps): JSX.Element => {
-  const [bedrooms, updateBedrooms] = useState(0);
+  const [bedrooms, updateBedrooms] = useState(parseFloat('NaN'));
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     updateBedrooms(parseFloat(event.currentTarget.value.replaceAll(',', '')));
@@ -298,6 +307,8 @@ const NumberOfBedroomsInputForm = (props: NumberOfBedroomsInputProps): JSX.Eleme
     }
   };
 
+  const readyToSubmit = !isNaN(bedrooms);
+
   return (
     <form onSubmit={onSubmit}>
       <input
@@ -309,7 +320,7 @@ const NumberOfBedroomsInputForm = (props: NumberOfBedroomsInputProps): JSX.Eleme
         title="This field must be a number"/>
       <br/>
       <BackButton goBack={props.goBack}/>
-      <button type="submit">Next</button>
+      <button type="submit" disabled={!readyToSubmit}>Next</button>
     </form>
   );
 };
