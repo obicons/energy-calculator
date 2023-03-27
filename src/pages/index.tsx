@@ -1,14 +1,15 @@
 import Head from 'next/head'
 import Image from 'next/image'
 import styles from '@/styles/Home.module.css'
-import React, { ReactNode, useState } from 'react'
+import React, { ReactNode, useEffect, useState } from 'react'
 import  { bestOffers } from '@/offers'
+import { useQueryState, queryTypes } from 'next-usequerystate'
 
 interface PipelineStepProps<T> {
   item?: T;
   advance?: (newItem: T) => void;
   jumpToEnd?: (newItem: T) => void;
-  goBack?: () => void;
+  depth?: number;
 }
 
 interface MonthlyUsageFieldProps {
@@ -43,10 +44,6 @@ interface VariableRateViewProps extends PipelineStepProps<UserParameters> {}
 
 interface RenewablePreferenceViewProps extends PipelineStepProps<UserParameters> {}
 
-interface BackButtonProps {
-  goBack?: () => void;
-}
-
 const months = [
   'january', 'february', 'march', 'april', 'may', 'june', 'july',
   'august', 'september', 'october', 'november', 'december',
@@ -71,31 +68,44 @@ export default function Home() {
 }
 
 const Pipeline = <T,>(props: PipelineProps<T>): JSX.Element => {
-  const [value, setValue] = useState({item: props.item, index: 0});
+  // Counts nested pipelines.
+  const depth: number = props.depth ?? 0;
+
+  const [value, setValue] = useQueryState(
+    'parameters',
+    {
+      history: 'push',
+      ...queryTypes.json<{item?: T, index: Array<number>}>().
+                    withDefault({item: props.item, index: [0]})
+    },
+  );
+
+  if (depth >= value.index.length) {
+    value.index[depth] = 0;
+  }
 
   const advance = (x: T) => {
-    setValue({index: value.index + 1, item: x});
+    const newIndex = [...value.index];
+    newIndex[depth] += 1;
+    setValue({index: newIndex, item: x});
   };
 
   const jumpToEnd = (x: T) => {
-    setValue({index: React.Children.toArray(props.children).length - 1, item: x});
+    const newIndex = [...value.index];
+    newIndex[depth] = React.Children.toArray(props.children).length - 1;
+    setValue({index: newIndex, item: x});
   };
 
-  const goBack = () => {
-    if (value.index > 0) {
-      setValue({index: value.index - 1, item: value.item});
-    }
-  };
-
-  let child = React.Children.toArray(props.children).at(value.index);
+  let child = React.Children.toArray(props.children).at(value.index[depth]);
   if (React.isValidElement<PipelineStepProps<T>>(child)) {
+    const childDepth = depth + (child.type === Pipeline ? 1 : 0);
     child = React.cloneElement(
       child as React.ReactElement<PipelineStepProps<T>>,
       {
         advance,
         jumpToEnd,
-        goBack,
         item: value.item,
+        depth: childDepth,
       },
     );
   }
@@ -195,7 +205,6 @@ const MonthlyUsageForm = (props: MonthlyUsageFormProps): JSX.Element => {
             updateUsage={(usage) => updateUsage(month, usage)}
             key={month}/>)
       }
-      <BackButton/>
       <button type="button" onClick={onSkip} id="monthly-usage-not-sure-button">I&apos;m not sure</button>
       <button type="submit" id="monthly-usage-next-button" disabled={!readyToSubmit}>Next</button>
     </form>
@@ -270,7 +279,6 @@ const SquareFootInputForm = (props: SquareFootInputProps): JSX.Element => {
         pattern="([0-9],?)+"
         title="This field must be a number"/>
       <br/>
-      <BackButton goBack={props.goBack}/>
       <button type="button" onClick={onSkip}>I&apos;m not sure</button>
       <button type="submit" disabled={!readyToSubmit}>Next</button>
     </form>
@@ -331,19 +339,10 @@ const NumberOfBedroomsInputForm = (props: NumberOfBedroomsInputProps): JSX.Eleme
         pattern="([0-9],?)+"
         title="This field must be a number"/>
       <br/>
-      <BackButton goBack={props.goBack}/>
       <button type="submit" disabled={!readyToSubmit}>Next</button>
     </form>
   );
 };
-
-const BackButton = (props: BackButtonProps): JSX.Element => (
-    <button type="button"
-            onClick={props.goBack}
-            disabled={props.goBack === undefined}>
-      Back
-    </button>
-);
 
 const VariableRateView = (props: VariableRateViewProps) => {
   const onClick = (useVariableRates: boolean) => {
