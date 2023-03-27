@@ -17,18 +17,24 @@ interface MonthlyUsageFieldProps {
   key: string;
 };
 
-interface SupplierViewProps extends PipelineStepProps<Array<number>> {}
-
-interface MonthlyUsageFormProps extends PipelineStepProps<Array<number>> {}
-
-interface PipelineProps<T> {
-  children: React.ReactElement<PipelineStepProps<T>>[] | React.ReactElement<PipelineStepProps<T>>;
-  initialValue: T;
+interface UserParameters {
+  monthlyUsage: Array<number>;
+  considerVariableRates: boolean;
 }
 
-interface SquareFootInputProps extends PipelineStepProps<Array<number>> {}
+interface SupplierViewProps extends PipelineStepProps<UserParameters> {}
 
-interface NumberOfBedroomsInputProps extends PipelineStepProps<Array<number>> {}
+interface MonthlyUsageFormProps extends PipelineStepProps<UserParameters> {}
+
+interface PipelineProps<T> extends PipelineStepProps<T> {
+  children: React.ReactElement<PipelineStepProps<T>>[] | React.ReactElement<PipelineStepProps<T>>;
+}
+
+interface SquareFootInputProps extends PipelineStepProps<UserParameters> {}
+
+interface NumberOfBedroomsInputProps extends PipelineStepProps<UserParameters> {}
+
+interface VariableRateViewProps extends PipelineStepProps<UserParameters> {}
 
 interface BackButtonProps {
   goBack?: () => void;
@@ -58,7 +64,7 @@ export default function Home() {
 }
 
 const Pipeline = <T,>(props: PipelineProps<T>): JSX.Element => {
-  const [value, setValue] = useState({item: props.initialValue, index: 0});
+  const [value, setValue] = useState({item: props.item, index: 0});
 
   const advance = (x: T) => {
     setValue({index: value.index + 1, item: x});
@@ -91,27 +97,36 @@ const Pipeline = <T,>(props: PipelineProps<T>): JSX.Element => {
 };
 
 const SupplierSelectionApp = (): JSX.Element => (
-    <Pipeline initialValue={[] as Array<number>}>
-      <MonthlyUsageInput/>
-      <SquareFootInput/>
-      <NumberOfBedroomsInput/>
-      <SupplierView/>
+    <Pipeline item={getDefaultParameters()}>
+      <MonthlyUsageInputView/>
+      <SquareFootInputView/>
+      <NumberOfBedroomsInputView/>
+      <Pipeline>
+        <VariableRateView/>
+        <SupplierView/>
+      </Pipeline>
     </Pipeline>
 );
 
 const SupplierView = (props: SupplierViewProps): JSX.Element => {
-  const orderedSuppliers = bestOffers(props.item || []);
+  const orderedSuppliers = bestOffers(props.item?.monthlyUsage || [], props.item?.considerVariableRates);
   const bestOffer = orderedSuppliers[0];
   return (
     <>
-      <strong><a href={bestOffer.supplierURL}>{bestOffer.supplier}</a>:</strong>
+      <h2>Based on your answers, this supplier looks like the best option for you:</h2>
+      <strong><a href={bestOffer.supplierURL}>{bestOffer.supplier}</a></strong>
       <p>${bestOffer.pricePerkwH} per kWh,
-         ${bestOffer.monthlyPrice} monthly service price.</p>
+         ${bestOffer.monthlyPrice} monthly service price,
+         {bestOffer.isVariable ? " variable rate. " : " fixed rate. "}
+         <br/>
+         Remember: Carefully review any agreement you sign, and make sure the
+         rates you agree to match the advertised rates.
+      </p>
     </>
   );
 };
 
-const MonthlyUsageInput = (props: MonthlyUsageFormProps): JSX.Element => (
+const MonthlyUsageInputView = (props: MonthlyUsageFormProps): JSX.Element => (
   <>
     <div id="header">
       <h2>How much energy do you use each month?</h2>
@@ -139,14 +154,17 @@ const MonthlyUsageForm = (props: MonthlyUsageFormProps): JSX.Element => {
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (props.jumpToEnd !== undefined) {
-      props.jumpToEnd(months.map(month => monthToUsage.get(month) || 0.));
+      props.jumpToEnd({
+        ...(props.item || getDefaultParameters()),
+        monthlyUsage: months.map(month => monthToUsage.get(month) || 0.),
+      });
     }
   };
 
   const onSkip = (e: React.FormEvent) => {
     e.preventDefault();
     if (props.advance !== undefined) {
-      props.advance([]);
+      props.advance(props.item || getDefaultParameters());
     }
   };
 
@@ -184,7 +202,7 @@ const MonthlyUsageField = (props: MonthlyUsageFieldProps): JSX.Element => {
   );
 };
 
-const SquareFootInput = (props: SquareFootInputProps): JSX.Element => (
+const SquareFootInputView = (props: SquareFootInputProps): JSX.Element => (
   <>
     <div id="header">
       <h2>How large is your home?</h2>
@@ -207,14 +225,17 @@ const SquareFootInputForm = (props: SquareFootInputProps): JSX.Element => {
   const onSkip = (e: React.FormEvent) => {
     e.preventDefault();
     if (props.advance !== undefined) {
-      props.advance([]);
+      props.advance(props.item || getDefaultParameters());
     }
   };
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (props.jumpToEnd !== undefined) {
-      props.jumpToEnd(estimateMonthlyEnergyFromSquareFeet(squareFeet));
+      props.jumpToEnd({
+        ...(props.item || getDefaultParameters()),
+        monthlyUsage: estimateMonthlyEnergyFromSquareFeet(squareFeet),
+      });
     }
   };
 
@@ -235,7 +256,7 @@ const SquareFootInputForm = (props: SquareFootInputProps): JSX.Element => {
   );
 };
 
-const NumberOfBedroomsInput = (props: NumberOfBedroomsInputProps): JSX.Element => (
+const NumberOfBedroomsInputView = (props: NumberOfBedroomsInputProps): JSX.Element => (
   <>
     <div id="header">
       <h2>How many bedrooms do you have?</h2>
@@ -270,7 +291,10 @@ const NumberOfBedroomsInputForm = (props: NumberOfBedroomsInputProps): JSX.Eleme
     if (props.jumpToEnd !== undefined) {
       const clippedBedrooms = Math.min(5, bedrooms);
       const squareFeet = bedroomsToSquareFeet[clippedBedrooms];
-      props.jumpToEnd(estimateMonthlyEnergyFromSquareFeet(squareFeet));
+      props.jumpToEnd({
+        ...(props.item || getDefaultParameters()),
+        monthlyUsage: estimateMonthlyEnergyFromSquareFeet(squareFeet),
+      });
     }
   };
 
@@ -298,12 +322,42 @@ const BackButton = (props: BackButtonProps): JSX.Element => (
     </button>
 );
 
+const VariableRateView = (props: VariableRateViewProps) => {
+  const onClick = (useVariableRates: boolean) => {
+    if (props.advance !== undefined) {
+      props.advance({
+        ...(props.item || getDefaultParameters()),
+        considerVariableRates: useVariableRates,
+      });
+    }
+  };
+
+  return (
+    <>
+      <h2>Are you interested in variable rate suppliers?</h2>
+      <h3>Variable rate suppliers often offer cheaper prices per kWh, but
+          can increase prices when energy demand is high.</h3>
+      <button type="button" onClick={() => onClick(true)}>
+        Yes, use variable rate suppliers.
+      </button>
+      <button type="button" onClick={() => onClick(false)}>
+        No, don&apos;t use variable rate suppliers.
+      </button>
+    </>
+  );
+};
+
 // According to Google, this is usally true.
 const kWhPerSquareFoot = .5;
 
 const estimateMonthlyEnergyFromSquareFeet =
   (squareFeet: number): Array<number> =>
     months.map((_) => squareFeet * kWhPerSquareFoot);
+
+const getDefaultParameters = (): UserParameters => ({
+  monthlyUsage: [],
+  considerVariableRates: false,
+});
 
 const capitalize = (str: string): string => {
   if (str.length == 0) {

@@ -407,7 +407,7 @@ const offerXML = `
     <EarlyTerminationFee>$0.00</EarlyTerminationFee>
     <MonthlyFee>$0.00</MonthlyFee>
     <PromotionalOffer IsPromotionalOffer="Yes" Details="Our 25% rebate is available to all of our customers. &#xD;&#xA;&#xD;&#xA;We have sent out over $900,000 in rebates. Are you getting one?" />
-    <OfferDetails>Our 25% rebate is available to all of our customers. 
+    <OfferDetails>Our 25% rebate is available to all of our customers.
 
 We have sent out over $900,000 in rebates. Are you getting one?</OfferDetails>
   </Offer>
@@ -1282,7 +1282,7 @@ We have sent out over $900,000 in rebates. Are you getting one?</OfferDetails>
     <EarlyTerminationFee>$75.00</EarlyTerminationFee>
     <MonthlyFee>$0.00</MonthlyFee>
     <PromotionalOffer IsPromotionalOffer="No" Details="" />
-    <OfferDetails>Our 25% rebate is available to all of our customers. 
+    <OfferDetails>Our 25% rebate is available to all of our customers.
 
 We have sent out over $900,000 in rebates. Are you getting one?</OfferDetails>
   </Offer>
@@ -1447,16 +1447,14 @@ For New Customers.</OfferDetails>
 </Offers>
 `;
 
-function getOffers(): Array<Offer> {
+export function getOffers(): Array<Offer> {
   return Offer.fromXMLString(offerXML);
 }
 
-export const offers = getOffers();
-
 // Returns an array sorted so that i < j => a[i] "is a better deal than" a[j].
-export function bestOffers(usageData: Array<number>): Array<Offer> {
+export function bestOffers(usageData: Array<number>, useVariableRates: boolean = false): Array<Offer> {
   return getOffers().
-              filter((offer) => !offer.isVariable && !offer.isPromotionalOffer).
+              filter((offer) => (!offer.isVariable || useVariableRates) && !offer.isPromotionalOffer).
               sort((a, b) => usageData.map((d) => a.getPrice(d)).reduce((x, y) => x + y, 0) -
                               usageData.map((d) => b.getPrice(d)).reduce((x, y) => x + y, 0));
 }
