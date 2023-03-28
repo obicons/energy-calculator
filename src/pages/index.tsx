@@ -137,6 +137,12 @@ const LandingPageView = (props: LandingPageViewProps): JSX.Element => (
       Find the energy supplier that&apos;s right for you.
     </div>
     <div className={styles.description}>
+        <Image
+          className={styles.clipart}
+          src="energy_icon.svg"
+          alt=""
+          width={150}
+          height={150}/>
       <p>
         Choosing an energy supplier is tricky. We&apos;re here to help.
         Just answer three simple questions, and we&apos;ll show you a supplier
