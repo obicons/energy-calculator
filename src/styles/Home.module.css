@@ -9,10 +9,11 @@
   color: white;
   font-family: sans-serif;
   height: 100vh;
-  min-height: max-content;
-  position: absolute;
   overflow: auto;
   width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .question {
@@ -87,4 +88,15 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
+}
+
+.contentwrapper {
+  margin-bottom: 5%;
+  display: block;
+  flex: 1;
+}
+
+.footer {
+  width: 100%;
+  margin: 1%;
 }

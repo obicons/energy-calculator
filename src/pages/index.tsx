@@ -61,8 +61,12 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className={styles.main}>
-        <div className={styles.description}>
+        <div className={styles.contentwrapper}>
           <SupplierSelectionApp/>
+        </div>
+        <div className={styles.footer}>
+          Made by <a href="https://maxtaylor.dev">Max Taylor</a>.
+          Copyright 2023.
         </div>
       </main>
     </>
