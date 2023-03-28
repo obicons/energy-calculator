@@ -446,12 +446,14 @@ const VariableRateView = (props: VariableRateViewProps) => {
           can increase prices when energy demand is high.
         </p>
       </div>
-      <button className={styles.promptbutton} type="button" onClick={() => onClick(true)}>
-        Yes, use variable rate suppliers.
-      </button>
-      <button className={styles.promptbutton} type="button" onClick={() => onClick(false)}>
-        No, don&apos;t use variable rate suppliers.
-      </button>
+      <form className={styles.form}>
+        <button className={styles.promptbutton} type="button" onClick={() => onClick(true)}>
+          Yes, use variable rate suppliers.
+        </button>
+        <button className={styles.promptbutton} type="button" onClick={() => onClick(false)}>
+          No, don&apos;t use variable rate suppliers.
+        </button>
+      </form>
     </>
   );
 };
@@ -482,15 +484,17 @@ const RenewablePreferenceView = (props: RenewablePreferenceViewProps): JSX.Eleme
           is more environmentally friendly.
         </p>
       </div>
-      <button className={styles.promptbutton} type="button" onClick={() => onClick(0.0)}>
-        Not important at all.
-      </button>
-      <button className={styles.promptbutton} type="button" onClick={() => onClick(25.0)}>
-        Somewhat important.
-      </button>
-      <button className={styles.promptbutton} type="button" onClick={() => onClick(50.0)}>
-        Very important.
-      </button>
+      <form className={styles.form}>
+        <button className={styles.promptbutton} type="button" onClick={() => onClick(0.0)}>
+          Not important at all.
+        </button>
+        <button className={styles.promptbutton} type="button" onClick={() => onClick(25.0)}>
+          Somewhat important.
+        </button>
+        <button className={styles.promptbutton} type="button" onClick={() => onClick(50.0)}>
+          Very important.
+        </button>
+      </form>
     </>
   );
 };
