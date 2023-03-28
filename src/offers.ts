@@ -14,6 +14,8 @@ type OfferJSON = {
   Renewable: string;
 };
 
+const ensureExternalLink = (url: string) => url.startsWith('http') ? url : 'https://' + url;
+
 export class Offer {
   supplier: string;
   pricePerkwH: number;
@@ -44,7 +46,7 @@ export class Offer {
       parseFloat(offer['MonthlyFee'].substring(1)),
       offer['RateType'] !== 'Fixed',
       offer['PromotionalOffer']['IsPromotionalOffer'] === 'Yes',
-      offer['SupplierInfo']['SupplierWebSiteUrl'],
+      ensureExternalLink(offer['SupplierInfo']['SupplierWebSiteUrl']),
       parseFloat(offer['Renewable']),
     ));
   }
