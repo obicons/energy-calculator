@@ -524,6 +524,15 @@ const EmailInputView = (props: EmailInputViewProps): JSX.Element => {
     if (props.advance !== undefined) {
       props.advance({
         ...(props.item || getDefaultParameters()),
+      });
+    }
+  };
+
+  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (props.advance !== undefined) {
+      props.advance({
+        ...(props.item || getDefaultParameters()),
         email,
       });
     }
@@ -546,7 +555,7 @@ const EmailInputView = (props: EmailInputViewProps): JSX.Element => {
           We&apos;ll never send you any spam or marketing emails.
           Your email will never be shared with anyone.
         </p>
-        <form className={styles.form}>
+        <form className={styles.form} onSubmit={onSubmit}>
           <input
             className={styles.promptinput}
             type="email"
@@ -555,9 +564,8 @@ const EmailInputView = (props: EmailInputViewProps): JSX.Element => {
           <br/>
           <button
             className={styles.promptbutton}
-            type="button"
-            disabled={!isEmailEnabled}
-            onClick={advance}>
+            type="submit"
+            disabled={!isEmailEnabled}>
               Yes, email me.
           </button>
           <button
