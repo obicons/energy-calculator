@@ -1,7 +1,7 @@
 import Head from 'next/head'
 import Image from 'next/image'
 import styles from '@/styles/Home.module.css'
-import React, { ReactNode, useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import  { bestOffers } from '@/offers'
 import { useQueryState, queryTypes } from 'next-usequerystate'
 
@@ -21,11 +21,16 @@ interface MonthlyUsageFieldProps {
 interface UserParameters {
   // kWh used each month.
   monthlyUsage: Array<number>;
+
   // Controls if we consider variable rates.
   considerVariableRates: boolean;
+
   // Restricts consideration to suppliers who report the proportion of
   // renewable energy they source is guaranteed to meet this threshold.
   renewableThreshold: number;
+
+  // Email to notify users.
+  email: string;
 }
 
 interface LandingPageViewProps extends PipelineStepProps<UserParameters> {}
@@ -45,6 +50,8 @@ interface NumberOfBedroomsInputProps extends PipelineStepProps<UserParameters> {
 interface VariableRateViewProps extends PipelineStepProps<UserParameters> {}
 
 interface RenewablePreferenceViewProps extends PipelineStepProps<UserParameters> {}
+
+interface EmailInputViewProps extends PipelineStepProps<UserParameters> {}
 
 const months = [
   'january', 'february', 'march', 'april', 'may', 'june', 'july',
@@ -128,6 +135,7 @@ const SupplierSelectionApp = (): JSX.Element => (
       <Pipeline>
         <VariableRateView/>
         <RenewablePreferenceView/>
+        <EmailInputView/>
         <SupplierView/>
       </Pipeline>
     </Pipeline>
@@ -149,15 +157,18 @@ const LandingPageView = (props: LandingPageViewProps): JSX.Element => (
         height={150}/>
       <p>
         Choosing an energy supplier is tricky. We&apos;re here to help.
-        Just answer three simple questions, and we&apos;ll show you a supplier
+        Just answer four simple questions, and we&apos;ll show you a supplier
         that&apos;s right for you.
       </p>
       <br/>
-      <button
-        className={styles.promptbutton}
-        onClick={() => {props.advance !== undefined ? props.advance(getDefaultParameters()) : null}}>
-        Get Started
-      </button>
+      <form className={styles.form}>
+        <button
+          type="button"
+          className={styles.promptbutton}
+          onClick={() => {props.advance !== undefined ? props.advance(getDefaultParameters()) : null}}>
+          Get Started
+        </button>
+      </form>
     </div>
   </>
 );
@@ -499,6 +510,68 @@ const RenewablePreferenceView = (props: RenewablePreferenceViewProps): JSX.Eleme
   );
 };
 
+const EmailInputView = (props: EmailInputViewProps): JSX.Element => {
+  const [email, setEmail] = useState('');
+
+  const handleEmailInput = (event: React.ChangeEvent<HTMLInputElement>) => {
+    console.log(`email: ${event.currentTarget.value}`);
+    setEmail(event.currentTarget.value);
+  };
+
+  const isEmailEnabled = email.length > 0;
+
+  const advance = () => {
+    if (props.advance !== undefined) {
+      props.advance({
+        ...(props.item || getDefaultParameters()),
+        email,
+      });
+    }
+  };
+
+  return (
+    <>
+      <div className={styles.question}>
+        Question 4: Would you like us to email you a new recommendation when your contract ends?
+      </div>
+      <div className={styles.description}>
+        <Image
+            className={styles.clipart}
+            src="mail_icon.svg"
+            alt=""
+            width={150}
+            height={150}/>
+        <p>
+          We&apos;ll send you a new recommendation based on your answers when your current contract ends.
+          We&apos;ll never send you any spam or marketing emails.
+          Your email will never be shared with anyone.
+        </p>
+        <form className={styles.form}>
+          <input
+            className={styles.promptinput}
+            type="email"
+            placeholder="Enter your email address"
+            onChange={handleEmailInput}/>
+          <br/>
+          <button
+            className={styles.promptbutton}
+            type="button"
+            disabled={!isEmailEnabled}
+            onClick={advance}>
+              Yes, email me.
+          </button>
+          <button
+            className={styles.promptbutton}
+            type="button"
+            onClick={advance}>
+              No thanks.
+          </button>
+        </form>
+      </div>
+    </>
+  );
+};
+
 // According to Google, this is usally true.
 const kWhPerSquareFoot = .5;
 
@@ -510,6 +583,7 @@ const getDefaultParameters = (): UserParameters => ({
   monthlyUsage: [],
   considerVariableRates: false,
   renewableThreshold: 0.0,
+  email: '',
 });
 
 const capitalize = (str: string): string => {

@@ -41,6 +41,7 @@
 
 .form {
   text-align: center;
+  margin-top: 2%;
 }
 
 .form input {
@@ -55,10 +56,11 @@
   color: #2D822A;
   background-color: white;
   margin: .2%;
-  margin-top: 2%;
   padding: 1%;
   border: none;
   width: 14em;
+  font-size: medium;
+  margin-top: 2%;
 }
 
 .promptbutton:hover {
@@ -72,7 +74,7 @@
 }
 
 .promptinput {
-  font-size: 16px;
+  font-size: medium;
 }
 
 .clipart {
