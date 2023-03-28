@@ -137,12 +137,12 @@ const LandingPageView = (props: LandingPageViewProps): JSX.Element => (
       Find the energy supplier that&apos;s right for you.
     </div>
     <div className={styles.description}>
-        <Image
-          className={styles.clipart}
-          src="energy_icon.svg"
-          alt=""
-          width={150}
-          height={150}/>
+      <Image
+        className={styles.clipart}
+        src="energy_icon.svg"
+        alt=""
+        width={150}
+        height={150}/>
       <p>
         Choosing an energy supplier is tricky. We&apos;re here to help.
         Just answer three simple questions, and we&apos;ll show you a supplier
@@ -169,7 +169,13 @@ const SupplierView = (props: SupplierViewProps): JSX.Element => {
     <>
       <div className={styles.question}>Based on your answers, this supplier looks like the best option for you:</div>
       <div className={styles.description}>
-        <p><strong><a href={bestOffer.supplierURL}>{bestOffer.supplier}: </a></strong>
+        <Image
+          className={styles.clipart}
+          src="savings_icon.svg"
+          alt=""
+          width={150}
+          height={150}/>
+        <p><strong><a href={bestOffer.supplierURL}>{bestOffer.supplier}</a>: </strong>
             ${bestOffer.pricePerkwH} per kWh,
             ${bestOffer.monthlyPrice} monthly service price,
             {bestOffer.isVariable ? " variable rate. " : " fixed rate. "}
@@ -187,6 +193,12 @@ const MonthlyUsageInputView = (props: MonthlyUsageFormProps): JSX.Element => (
     <div id="header">
       <div className={styles.question}>Question 1: How much energy do you use each month?</div>
       <div className={styles.description}>
+        <Image
+          className={styles.clipart}
+          src="chart_icon.svg"
+          alt=""
+          width={150}
+          height={150}/>
         <p>
           You can find this data on your power bill.
           We need this to determine the cheapest supplier that satisfies your demand because
@@ -235,12 +247,14 @@ const MonthlyUsageForm = (props: MonthlyUsageFormProps): JSX.Element => {
 
   return (
     <form onSubmit={onSubmit} className={styles.form}>
+      <div className={styles.monthlyusageflex}>
       {
         months.map(month => <MonthlyUsageField
             month={month}
             updateUsage={(usage) => updateUsage(month, usage)}
             key={month}/>)
       }
+      </div>
       <button className={styles.promptbutton} type="button" onClick={onSkip} id="monthly-usage-not-sure-button">I&apos;m not sure</button>
       <button className={styles.promptbutton} type="submit" id="monthly-usage-next-button" disabled={!readyToSubmit}>Next</button>
     </form>
@@ -272,6 +286,12 @@ const SquareFootInputView = (props: SquareFootInputProps): JSX.Element => (
     <div id="header">
       <div className={styles.question}>How large is your home?</div>
       <div className={styles.description}>
+        <Image
+          className={styles.clipart}
+          src="house_icon.svg"
+          alt=""
+          width={150}
+          height={150}/>
         <p>
           We&apos;ll do our best to estimate your energy consumption based on your home size.
           Note that the result will be less accurate than if you used historical data.
@@ -332,6 +352,12 @@ const NumberOfBedroomsInputView = (props: NumberOfBedroomsInputProps): JSX.Eleme
     <div id="header">
       <div className={styles.question}>How many bedrooms do you have?</div>
       <div className={styles.description}>
+        <Image
+            className={styles.clipart}
+            src="bedroom_icon.svg"
+            alt=""
+            width={150}
+            height={150}/>
         <p>
           We&apos;ll do our best to estimate your home size based on the number of bedrooms you have.
           Then, we&apos;ll use your home size to estimate your energy usage.
@@ -405,6 +431,12 @@ const VariableRateView = (props: VariableRateViewProps) => {
     <>
       <div className={styles.question}>Question 2: Are you interested in variable rate suppliers?</div>
       <div className={styles.description}>
+        <Image
+          className={styles.clipart}
+          src="variable_icon.svg"
+          alt=""
+          width={150}
+          height={150}/>
         <p>
           Variable rate suppliers often offer cheaper prices per kWh, but
           can increase prices when energy demand is high.
@@ -434,6 +466,12 @@ const RenewablePreferenceView = (props: RenewablePreferenceViewProps): JSX.Eleme
     <>
       <div className={styles.question}>Question 3: How important is using renewable energy to you?</div>
       <div className={styles.description}>
+        <Image
+          className={styles.clipart}
+          src="windmill_icon.svg"
+          alt=""
+          width={150}
+          height={150}/>
         <p>
           Some suppliers promise to purchase energy from renewable energy
           generators. Renewable energy is usually more expensive, but it

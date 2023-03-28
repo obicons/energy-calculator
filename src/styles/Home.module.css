@@ -82,3 +82,9 @@
   fill: white;
   text-align: center;
 }
+
+.monthlyusageflex {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
