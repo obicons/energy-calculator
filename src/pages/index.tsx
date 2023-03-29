@@ -1,9 +1,10 @@
 import Head from 'next/head'
 import Image from 'next/image'
 import styles from '@/styles/Home.module.css'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import  { bestOffers } from '@/offers'
 import { useQueryState, queryTypes } from 'next-usequerystate'
+import { addUserData, getTimestamp } from '@/backend'
 
 interface PipelineStepProps<T> {
   item?: T;
@@ -31,6 +32,8 @@ interface UserParameters {
 
   // Email to notify users.
   email: string;
+
+  termMonths: number;
 }
 
 interface LandingPageViewProps extends PipelineStepProps<UserParameters> {}
@@ -179,7 +182,22 @@ const SupplierView = (props: SupplierViewProps): JSX.Element => {
     props.item?.considerVariableRates,
     props.item?.renewableThreshold || 0.0,
   );
+
   const bestOffer = orderedSuppliers[0];
+
+  let recorded = false;
+  useEffect(() => {
+    if (!recorded && props.item?.email !== undefined) {
+      const newUserData = {
+        ...(props.item || getDefaultParameters()),
+        termMonths: bestOffer.termLength,
+        created: getTimestamp(),
+      };
+      addUserData(newUserData);
+      recorded = true;
+    }
+  }, []);
+
   return (
     <>
       <div className={styles.question}>Based on your answers, this supplier looks like the best option for you:</div>
@@ -514,7 +532,6 @@ const EmailInputView = (props: EmailInputViewProps): JSX.Element => {
   const [email, setEmail] = useState('');
 
   const handleEmailInput = (event: React.ChangeEvent<HTMLInputElement>) => {
-    console.log(`email: ${event.currentTarget.value}`);
     setEmail(event.currentTarget.value);
   };
 
@@ -531,10 +548,11 @@ const EmailInputView = (props: EmailInputViewProps): JSX.Element => {
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (props.advance !== undefined) {
-      props.advance({
+      const newData = {
         ...(props.item || getDefaultParameters()),
         email,
-      });
+      };
+      props.advance(newData);
     }
   };
 
@@ -592,6 +610,7 @@ const getDefaultParameters = (): UserParameters => ({
   considerVariableRates: false,
   renewableThreshold: 0.0,
   email: '',
+  termMonths: 0,
 });
 
 const capitalize = (str: string): string => {

@@ -12,6 +12,7 @@ type OfferJSON = {
     IsPromotionalOffer: string;
   };
   Renewable: string;
+  TermLength: number;
 };
 
 const ensureExternalLink = (url: string) => url.startsWith('http') ? url : 'https://' + url;
@@ -24,10 +25,11 @@ export class Offer {
   isPromotionalOffer: boolean;
   supplierURL: string;
   renewable: number;
+  termLength: number;
 
   constructor(supplier: string, pricePerkwH: number, monthlyPrice: number,
               variable: boolean, isPromotionalOffer: boolean,
-              supplierURL: string, renewable: number) {
+              supplierURL: string, renewable: number, termLength: number) {
       this.supplier = supplier;
       this.pricePerkwH = pricePerkwH;
       this.monthlyPrice = monthlyPrice;
@@ -35,6 +37,7 @@ export class Offer {
       this.isPromotionalOffer = isPromotionalOffer;
       this.supplierURL = supplierURL;
       this.renewable = renewable;
+      this.termLength = termLength;
   }
 
   static fromXMLString(xml: string): Array<Offer> {
@@ -48,6 +51,7 @@ export class Offer {
       offer['PromotionalOffer']['IsPromotionalOffer'] === 'Yes',
       ensureExternalLink(offer['SupplierInfo']['SupplierWebSiteUrl']),
       parseFloat(offer['Renewable']),
+      parseFloat(offer['TermLength']),
     ));
   }
 
