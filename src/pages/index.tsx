@@ -187,7 +187,7 @@ const SupplierView = (props: SupplierViewProps): JSX.Element => {
 
   let recorded = false;
   useEffect(() => {
-    if (!recorded && props.item?.email !== undefined) {
+    if (!recorded && props.item?.email !== '') {
       const newUserData = {
         ...(props.item || getDefaultParameters()),
         termMonths: bestOffer.termLength,
@@ -215,6 +215,10 @@ const SupplierView = (props: SupplierViewProps): JSX.Element => {
             <br/>
             Remember: Carefully review any agreement you sign, and make sure the
             rates you agree to match the advertised rates.
+        </p>
+        <p className={styles.buyacoffee}>
+          If this tool helped save you money,
+          you can return the favor by <a href="https://www.buymeacoffee.com/mtaylor">buying the developers a coffee</a>.
         </p>
       </div>
     </>

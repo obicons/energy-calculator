@@ -51,7 +51,7 @@ export class Offer {
       offer['PromotionalOffer']['IsPromotionalOffer'] === 'Yes',
       ensureExternalLink(offer['SupplierInfo']['SupplierWebSiteUrl']),
       parseFloat(offer['Renewable']),
-      parseFloat(offer['TermLength']),
+      offer['TermLength'],
     ));
   }
 
