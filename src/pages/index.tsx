@@ -75,7 +75,7 @@ export default function Home() {
           <SupplierSelectionApp/>
         </div>
         <div className={styles.footer}>
-          Made by <a href="https://maxtaylor.dev">Max Taylor</a>.
+          Made by <a href="https://maxtaylor.dev" target="_blank">Max Taylor</a>.
           Copyright 2023.
         </div>
       </main>
@@ -208,7 +208,7 @@ const SupplierView = (props: SupplierViewProps): JSX.Element => {
           alt=""
           width={150}
           height={150}/>
-        <p><strong><a href={bestOffer.supplierURL}>{bestOffer.supplier}</a>: </strong>
+        <p><strong><a href={bestOffer.supplierURL} target="_blank">{bestOffer.supplier}</a>: </strong>
             ${bestOffer.pricePerkwH} per kWh,
             ${bestOffer.monthlyPrice} monthly service price,
             {bestOffer.isVariable ? " variable rate. " : " fixed rate. "}
@@ -218,7 +218,7 @@ const SupplierView = (props: SupplierViewProps): JSX.Element => {
         </p>
         <p className={styles.buyacoffee}>
           If this tool helped save you money,
-          you can return the favor by <a href="https://www.buymeacoffee.com/mtaylor">buying the developers a coffee</a>.
+          you can return the favor by <a href="https://www.buymeacoffee.com/mtaylor" target="_blank">buying the developers a coffee</a>.
         </p>
       </div>
     </>
