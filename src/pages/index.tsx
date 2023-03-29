@@ -5,6 +5,7 @@ import React, { useEffect, useState } from 'react'
 import  { bestOffers } from '@/offers'
 import { useQueryState, queryTypes } from 'next-usequerystate'
 import { addUserData, getTimestamp } from '@/backend'
+import { useMyQueryState } from '@/querystate'
 
 interface PipelineStepProps<T> {
   item?: T;
@@ -17,11 +18,15 @@ interface MonthlyUsageFieldProps {
   month: string;
   updateUsage: (usage: number) => void;
   key: string;
+  value?: number;
 };
 
 interface UserParameters {
   // kWh used each month.
   monthlyUsage: Array<number>;
+
+  // Stores if the user is sure of their monthly usage.
+  sureOfMonthlyUsage: boolean;
 
   // Controls if we consider variable rates.
   considerVariableRates: boolean;
@@ -33,7 +38,18 @@ interface UserParameters {
   // Email to notify users.
   email: string;
 
+  // How long the final contract is.
   termMonths: number;
+
+  // Size of the house.
+  houseSize: number;
+
+  // Are we sure of our house size?
+  sureOfHouseSize: boolean;
+
+  // Number of bedrooms.
+  // 0 means not set.
+  bedroomCount: number;
 }
 
 interface LandingPageViewProps extends PipelineStepProps<UserParameters> {}
@@ -87,14 +103,18 @@ const Pipeline = <T,>(props: PipelineProps<T>): JSX.Element => {
   // Counts nested pipelines.
   const depth: number = props.depth ?? 0;
 
-  const [value, setValue] = useQueryState(
+  // const [value, setValue] = useQueryState(
+  //   'parameters',
+  //   {
+  //     history: 'push',
+  //     ...queryTypes.json<{item?: T, index: Array<number>}>().
+  //                   withDefault({item: props.item, index: [0]})
+  //   },
+  // );
+  const [value, setValue] = useMyQueryState(
     'parameters',
-    {
-      history: 'push',
-      ...queryTypes.json<{item?: T, index: Array<number>}>().
-                    withDefault({item: props.item, index: [0]})
-    },
-  );
+    {item: props.item, index: [0]},
+  )
 
   if (depth >= value.index.length) {
     value.index[depth] = 0;
@@ -103,13 +123,19 @@ const Pipeline = <T,>(props: PipelineProps<T>): JSX.Element => {
   const advance = (x: T) => {
     const newIndex = [...value.index];
     newIndex[depth] += 1;
-    setValue({index: newIndex, item: x});
+    setValue(
+      {index: newIndex, item: x},
+      {index: [...value.index], item: x},
+    );
   };
 
   const jumpToEnd = (x: T) => {
     const newIndex = [...value.index];
     newIndex[depth] = React.Children.toArray(props.children).length - 1;
-    setValue({index: newIndex, item: x});
+    setValue(
+      {index: newIndex, item: x},
+      {index: [...value.index], item: x},
+    );
   };
 
   let child = React.Children.toArray(props.children).at(value.index[depth]);
@@ -177,8 +203,31 @@ const LandingPageView = (props: LandingPageViewProps): JSX.Element => (
 );
 
 const SupplierView = (props: SupplierViewProps): JSX.Element => {
+  let monthlyUsage: Array<number> = [];
+  if (props.item !== undefined &&
+      props.item.monthlyUsage.length == months.length &&
+      props.item.sureOfMonthlyUsage) {
+    monthlyUsage = props.item.monthlyUsage;
+  } else if (props.item !== undefined &&
+             props.item.sureOfHouseSize &&
+             props.item.houseSize > 0) {
+    monthlyUsage = estimateMonthlyEnergyFromSquareFeet(props.item.houseSize);
+  } else if (props.item !== undefined && props.item.bedroomCount !== 0) {
+      // According to ChatGPT, this is true:
+      const bedroomsToSquareFeet: {[_: number]: number} = {
+        1: 600,
+        2: 900,
+        3: 1350,
+        4: 2000,
+        5: 2500,
+      };
+      const clippedBedrooms = Math.min(props.item.bedroomCount, 5);
+      const squareFeet = bedroomsToSquareFeet[clippedBedrooms];
+      monthlyUsage = estimateMonthlyEnergyFromSquareFeet(squareFeet);
+  }
+
   const orderedSuppliers = bestOffers(
-    props.item?.monthlyUsage || [],
+    monthlyUsage,
     props.item?.considerVariableRates,
     props.item?.renewableThreshold || 0.0,
   );
@@ -251,7 +300,14 @@ const MonthlyUsageInputView = (props: MonthlyUsageFormProps): JSX.Element => (
 );
 
 const MonthlyUsageForm = (props: MonthlyUsageFormProps): JSX.Element => {
-  const [monthToUsage, setMonthToUsage] = useState(new Map<string, number>());
+  const initMonthToUsage = new Map<string, number>();
+  months.forEach((month, idx) => {
+    if (props.item?.monthlyUsage[idx] !== undefined) {
+      initMonthToUsage.set(month, props.item?.monthlyUsage[idx]);
+    }
+  });
+
+  const [monthToUsage, setMonthToUsage] = useState(new Map<string, number>(initMonthToUsage));
 
   const updateUsage = (month: string, usage: number) => {
     const newMonthToUsage = new Map(monthToUsage);
@@ -269,6 +325,7 @@ const MonthlyUsageForm = (props: MonthlyUsageFormProps): JSX.Element => {
       props.jumpToEnd({
         ...(props.item || getDefaultParameters()),
         monthlyUsage: months.map(month => monthToUsage.get(month) || 0.),
+        sureOfMonthlyUsage: true,
       });
     }
   };
@@ -276,7 +333,10 @@ const MonthlyUsageForm = (props: MonthlyUsageFormProps): JSX.Element => {
   const onSkip = (e: React.FormEvent) => {
     e.preventDefault();
     if (props.advance !== undefined) {
-      props.advance(props.item || getDefaultParameters());
+      props.advance({
+        ...(props.item || getDefaultParameters()),
+        sureOfMonthlyUsage: false,
+      });
     }
   };
 
@@ -289,7 +349,8 @@ const MonthlyUsageForm = (props: MonthlyUsageFormProps): JSX.Element => {
         months.map(month => <MonthlyUsageField
             month={month}
             updateUsage={(usage) => updateUsage(month, usage)}
-            key={month}/>)
+            key={month}
+            value={monthToUsage.get(month)}/>)
       }
       </div>
       <button className={styles.promptbutton} type="button" onClick={onSkip} id="monthly-usage-not-sure-button">I&apos;m not sure</button>
@@ -308,6 +369,7 @@ const MonthlyUsageField = (props: MonthlyUsageFieldProps): JSX.Element => {
       <input
         className={styles.promptinput}
         id={props.month + "-usage"}
+        value={props.value || ""}
         placeholder={"Enter " + capitalize(props.month) + " kWh"}
         onChange={handleInputChange}
         required={true}
@@ -342,7 +404,12 @@ const SquareFootInputView = (props: SquareFootInputProps): JSX.Element => (
 );
 
 const SquareFootInputForm = (props: SquareFootInputProps): JSX.Element => {
-  const [squareFeet, updateSquareFeet] = useState(parseFloat('NaN'));
+  let defaultValue = parseFloat('NaN');
+  if (props.item !== undefined && props.item.houseSize !== 0) {
+    defaultValue = props.item.houseSize;
+  }
+
+  const [squareFeet, updateSquareFeet] = useState(defaultValue);
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     updateSquareFeet(parseFloat(event.currentTarget.value.replaceAll(',', '')));
@@ -351,7 +418,10 @@ const SquareFootInputForm = (props: SquareFootInputProps): JSX.Element => {
   const onSkip = (e: React.FormEvent) => {
     e.preventDefault();
     if (props.advance !== undefined) {
-      props.advance(props.item || getDefaultParameters());
+      props.advance({
+        ...(props.item || getDefaultParameters()),
+        sureOfHouseSize: false,
+      });
     }
   };
 
@@ -360,7 +430,8 @@ const SquareFootInputForm = (props: SquareFootInputProps): JSX.Element => {
     if (props.jumpToEnd !== undefined) {
       props.jumpToEnd({
         ...(props.item || getDefaultParameters()),
-        monthlyUsage: estimateMonthlyEnergyFromSquareFeet(squareFeet),
+        houseSize: squareFeet,
+        sureOfHouseSize: true,
       });
     }
   };
@@ -373,6 +444,7 @@ const SquareFootInputForm = (props: SquareFootInputProps): JSX.Element => {
         className={styles.promptinput}
         onChange={handleInputChange}
         type="text"
+        value={!isNaN(squareFeet) ? squareFeet : ""}
         placeholder="House size (square feet)"
         required={true}
         pattern="([0-9],?)+"
@@ -409,29 +481,25 @@ const NumberOfBedroomsInputView = (props: NumberOfBedroomsInputProps): JSX.Eleme
 );
 
 const NumberOfBedroomsInputForm = (props: NumberOfBedroomsInputProps): JSX.Element => {
-  const [bedrooms, updateBedrooms] = useState(parseFloat('NaN'));
+  let defaultBedrooms = parseFloat('NaN');
+  if (props.item !== undefined && props.item?.bedroomCount !== 0) {
+    defaultBedrooms = props.item?.bedroomCount ;
+  }
+
+  const [bedrooms, updateBedrooms] = useState(defaultBedrooms);
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     updateBedrooms(parseFloat(event.currentTarget.value.replaceAll(',', '')));
-  };
-
-  // According to ChatGPT, this is true:
-  const bedroomsToSquareFeet: {[_: number]: number} = {
-    1: 600,
-    2: 900,
-    3: 1350,
-    4: 2000,
-    5: 2500,
   };
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (props.jumpToEnd !== undefined) {
       const clippedBedrooms = Math.min(5, bedrooms);
-      const squareFeet = bedroomsToSquareFeet[clippedBedrooms];
+      // const squareFeet = bedroomsToSquareFeet[clippedBedrooms];
       props.jumpToEnd({
         ...(props.item || getDefaultParameters()),
-        monthlyUsage: estimateMonthlyEnergyFromSquareFeet(squareFeet),
+        bedroomCount: bedrooms,
       });
     }
   };
@@ -447,6 +515,7 @@ const NumberOfBedroomsInputForm = (props: NumberOfBedroomsInputProps): JSX.Eleme
         placeholder="Number of bedrooms"
         required={true}
         pattern="([0-9],?)+"
+        value={!isNaN(bedrooms) ? bedrooms : ""}
         title="This field must be a number"/>
       <br/>
       <button className={styles.promptbutton} type="submit" disabled={!readyToSubmit}>Next</button>
@@ -611,10 +680,14 @@ const estimateMonthlyEnergyFromSquareFeet =
 
 const getDefaultParameters = (): UserParameters => ({
   monthlyUsage: [],
+  sureOfMonthlyUsage: false,
   considerVariableRates: false,
   renewableThreshold: 0.0,
   email: '',
   termMonths: 0,
+  houseSize: 0,
+  sureOfHouseSize: false,
+  bedroomCount: 0,
 });
 
 const capitalize = (str: string): string => {
