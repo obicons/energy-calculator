@@ -13,6 +13,9 @@ type OfferJSON = {
     SupplierCompanyName: string;
     SupplierWebSiteUrl: string;
   };
+  SupplierLinks: {
+    SignUpNowURL: string;
+  };
   MonthlyFee: string;
   PromotionalOffer: {
     IsPromotionalOffer: string;
@@ -62,7 +65,7 @@ export class Offer {
       parseFloat(offer['MonthlyFee'].substring(1)),
       offer['RateType'] !== 'Fixed',
       offer['PromotionalOffer']['IsPromotionalOffer'] === 'Yes',
-      ensureExternalLink(offer['SupplierInfo']['SupplierWebSiteUrl']),
+      ensureExternalLink(offer['SupplierLinks']['SignUpNowURL']),
       parseFloat(offer['Renewable']),
       offer['TermLength'],
     ));
