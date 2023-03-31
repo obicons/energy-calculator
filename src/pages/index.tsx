@@ -7,6 +7,7 @@ import  { bestOffers, UtilityProvider, utilityProviders } from '@/offers'
 import { addUserData, getTimestamp } from '@/backend'
 import { useMyQueryState } from '@/querystate'
 import siteName from '@/sitename'
+import { Footer } from '@/footer'
 
 interface PipelineStepProps<T> {
   item?: T;
@@ -97,13 +98,7 @@ export default function Home() {
         <div className={styles.contentwrapper}>
           <SupplierSelectionApp/>
         </div>
-        <div className={styles.footer}>
-          Made by <a href="https://maxtaylor.dev" target="_blank">Max Taylor</a>.
-          Copyright 2023.
-          <div className={styles.credits}>
-            <Link href="/credits">Credits</Link>
-          </div>
-        </div>
+        <Footer/>
       </main>
     </>
   );

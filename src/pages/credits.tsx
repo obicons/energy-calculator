@@ -2,6 +2,7 @@ import Head from 'next/head'
 import Link from 'next/link'
 import styles from '@/styles/Home.module.css'
 import siteName from '@/sitename';
+import { Footer } from '@/footer';
 
 
 export default function Home() {
@@ -28,13 +29,7 @@ export default function Home() {
                         Icon by <a href="https://freeicons.io/profile/104110">Sumit-7080</a> on <a href="https://freeicons.io">freeicons.io</a>
                     </div>
                 </div>
-                <div className={styles.footer}>
-                Made by <a href="https://maxtaylor.dev" target="_blank">Max Taylor</a>.
-                Copyright 2023.
-                <div className={styles.credits}>
-                    <Link href="/credits">Credits</Link>
-                </div>
-                </div>
+                <Footer/>
             </main>
         </>
     );
