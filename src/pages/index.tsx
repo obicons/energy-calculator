@@ -2,7 +2,7 @@ import Head from 'next/head'
 import Image from 'next/image'
 import styles from '@/styles/Home.module.css'
 import React, { useEffect, useState } from 'react'
-import  { bestOffers } from '@/offers'
+import  { bestOffers, UtilityProvider, utilityProviders } from '@/offers'
 import { addUserData, getTimestamp } from '@/backend'
 import { useMyQueryState } from '@/querystate'
 
@@ -50,6 +50,9 @@ interface UserParameters {
   // Number of bedrooms.
   // 0 means not set.
   bedroomCount: number;
+
+  // The name of the user's utility company.
+  utility: UtilityProvider;
 }
 
 interface LandingPageViewProps extends PipelineStepProps<UserParameters> {}
@@ -71,6 +74,8 @@ interface VariableRateViewProps extends PipelineStepProps<UserParameters> {}
 interface RenewablePreferenceViewProps extends PipelineStepProps<UserParameters> {}
 
 interface EmailInputViewProps extends PipelineStepProps<UserParameters> {}
+
+interface UtilitySelectionViewProps extends PipelineStepProps<UserParameters> {}
 
 const months = [
   'january', 'february', 'march', 'april', 'may', 'june', 'july',
@@ -167,6 +172,7 @@ const Pipeline = <T,>(props: PipelineProps<T>): JSX.Element => {
 const SupplierSelectionApp = (): JSX.Element => (
     <Pipeline item={getDefaultParameters()}>
       <LandingPageView/>
+      <UtilitySelectionView/>
       <MonthlyUsageInputView/>
       <SquareFootInputView/>
       <NumberOfBedroomsInputView/>
@@ -178,6 +184,39 @@ const SupplierSelectionApp = (): JSX.Element => (
       </Pipeline>
     </Pipeline>
 );
+
+const UtilitySelectionView = (props: UtilitySelectionViewProps): JSX.Element => {
+  const chooseProvider = (provider: UtilityProvider) => {
+    if (props.advance !== undefined) {
+      props.advance({
+        ...(props.item ?? getDefaultParameters()),
+        utility: provider,
+      });
+    }
+  };
+
+  return (
+    <>
+      <div className={styles.question}>
+        Who is your utility provider?
+      </div>
+      <div className={styles.description}>
+        <div className={styles.buttons}>
+          {
+          utilityProviders.map((provider) => (
+            <button
+              key={provider}
+              onClick={() => chooseProvider(provider)}
+              className={styles.promptbutton}>
+                {provider}
+            </button>
+          ))
+          }
+        </div>
+      </div>
+    </>
+  );
+};
 
 const LandingPageView = (props: LandingPageViewProps): JSX.Element => (
   <>
@@ -195,7 +234,7 @@ const LandingPageView = (props: LandingPageViewProps): JSX.Element => (
         height={150}/>
       <p>
         Choosing an energy supplier is tricky. We&apos;re here to help.
-        Just answer four simple questions, and we&apos;ll show you a supplier
+        Just answer a few simple questions, and we&apos;ll show you a supplier
         that&apos;s right for you.
       </p>
       <br/>
@@ -239,6 +278,7 @@ const SupplierView = (props: SupplierViewProps): JSX.Element => {
     monthlyUsage,
     props.item?.considerVariableRates,
     props.item?.renewableThreshold || 0.0,
+    props.item?.utility ?? 'AEP',
   );
 
   const bestOffer = orderedSuppliers[0];
@@ -723,6 +763,7 @@ const getDefaultParameters = (): UserParameters => ({
   houseSize: 0,
   sureOfHouseSize: false,
   bedroomCount: 0,
+  utility: 'AEP',
 });
 
 const capitalize = (str: string): string => {
