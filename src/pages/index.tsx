@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import Head from 'next/head'
 import Image from 'next/image'
 import styles from '@/styles/Home.module.css'
@@ -98,6 +99,9 @@ export default function Home() {
         <div className={styles.footer}>
           Made by <a href="https://maxtaylor.dev" target="_blank">Max Taylor</a>.
           Copyright 2023.
+          <div className={styles.credits}>
+            <Link href="/credits">Credits</Link>
+          </div>
         </div>
       </main>
     </>
@@ -649,7 +653,7 @@ const RenewablePreferenceView = (props: RenewablePreferenceViewProps): JSX.Eleme
 
   return (
     <>
-      <div className={styles.question}>Question 3: How important is using renewable energy to you?</div>
+      <div className={styles.question}>Question 4: How important is using renewable energy to you?</div>
       <div className={styles.description}>
         <Image
           className={styles.clipart}

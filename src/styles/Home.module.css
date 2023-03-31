@@ -14,6 +14,7 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
 }
 
 .question {
@@ -105,11 +106,16 @@
 }
 
 .footer {
-  width: 100%;
-  margin: 1%;
+  width: auto;
+  padding: 1%;
 }
 
 .buyacoffee {
   margin-top: 2%;
   display: block;
+}
+
+.credits {
+  font-size: x-small;
+  float: right;
 }
