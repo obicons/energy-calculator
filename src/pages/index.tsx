@@ -6,6 +6,7 @@ import React, { useEffect, useState } from 'react'
 import  { bestOffers, UtilityProvider, utilityProviders } from '@/offers'
 import { addUserData, getTimestamp } from '@/backend'
 import { useMyQueryState } from '@/querystate'
+import siteName from '@/sitename'
 
 interface PipelineStepProps<T> {
   item?: T;
@@ -87,8 +88,8 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>EnRX</title>
-        <meta name="description" content="EnRX -- which energy supplier is right for me?" />
+        <title>{siteName}</title>
+        <meta name="description" content={`${siteName} -- which energy supplier is right for me?`} />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
@@ -231,7 +232,7 @@ const UtilitySelectionView = (props: UtilitySelectionViewProps): JSX.Element => 
 const LandingPageView = (props: LandingPageViewProps): JSX.Element => (
   <>
     <div className={styles.question}>
-      EnRX:
+      {siteName}:
       <br/>
       Find the energy supplier that&apos;s right for you.
     </div>

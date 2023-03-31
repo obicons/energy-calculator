@@ -1,6 +1,7 @@
 import Head from 'next/head'
 import Link from 'next/link'
 import styles from '@/styles/Home.module.css'
+import siteName from '@/sitename';
 
 
 export default function Home() {
@@ -8,7 +9,7 @@ export default function Home() {
         <>
             <Head>
             <title>Thanks</title>
-                <meta name="description" content="EnRX -- which energy supplier is right for me?" />
+                <meta name="description" content={`${siteName} -- which energy supplier is right for me?`} />
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
                 <link rel="icon" href="/favicon.ico" />
             </Head>
