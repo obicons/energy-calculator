@@ -198,7 +198,7 @@ const UtilitySelectionView = (props: UtilitySelectionViewProps): JSX.Element => 
   return (
     <>
       <div className={styles.question}>
-        Who is your utility provider?
+        Question 1: Who is your utility provider?
       </div>
       <div className={styles.description}>
         <div className={styles.buttons}>
@@ -332,7 +332,7 @@ const SupplierView = (props: SupplierViewProps): JSX.Element => {
 const MonthlyUsageInputView = (props: MonthlyUsageFormProps): JSX.Element => (
   <>
     <div id="header">
-      <div className={styles.question}>Question 1: How much energy do you use each month?</div>
+      <div className={styles.question}>Question 2: How much energy do you use each month?</div>
       <div className={styles.description}>
         <Image
           className={styles.clipart}
@@ -601,7 +601,7 @@ const VariableRateView = (props: VariableRateViewProps) => {
 
   return (
     <>
-      <div className={styles.question}>Question 2: Are you interested in variable rate suppliers?</div>
+      <div className={styles.question}>Question 3: Are you interested in variable rate suppliers?</div>
       <div className={styles.description}>
         <Image
           className={styles.clipart}
@@ -706,7 +706,7 @@ const EmailInputView = (props: EmailInputViewProps): JSX.Element => {
   return (
     <>
       <div className={styles.question}>
-        Question 4: Would you like us to email you a new recommendation when your contract ends?
+        Question 5: Would you like us to email you a new recommendation when your contract ends?
       </div>
       <div className={styles.description}>
         <Image
