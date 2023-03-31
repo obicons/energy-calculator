@@ -67,6 +67,12 @@
   cursor: pointer;
 }
 
+.buttons {
+  width: 100%;
+  display: inline-flex;
+  justify-content: center;
+}
+
 .promptbutton:disabled {
   background-color: #2D822A;
   background-color: lightgray;
@@ -105,4 +111,5 @@
 
 .buyacoffee {
   margin-top: 2%;
+  display: block;
 }

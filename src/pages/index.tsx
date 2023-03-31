@@ -3,7 +3,6 @@ import Image from 'next/image'
 import styles from '@/styles/Home.module.css'
 import React, { useEffect, useState } from 'react'
 import  { bestOffers } from '@/offers'
-import { useQueryState, queryTypes } from 'next-usequerystate'
 import { addUserData, getTimestamp } from '@/backend'
 import { useMyQueryState } from '@/querystate'
 
@@ -11,6 +10,7 @@ interface PipelineStepProps<T> {
   item?: T;
   advance?: (newItem: T) => void;
   jumpToEnd?: (newItem: T) => void;
+  goBack?: () => void;
   depth?: number;
 }
 
@@ -103,17 +103,13 @@ const Pipeline = <T,>(props: PipelineProps<T>): JSX.Element => {
   // Counts nested pipelines.
   const depth: number = props.depth ?? 0;
 
-  // const [value, setValue] = useQueryState(
-  //   'parameters',
-  //   {
-  //     history: 'push',
-  //     ...queryTypes.json<{item?: T, index: Array<number>}>().
-  //                   withDefault({item: props.item, index: [0]})
-  //   },
-  // );
   const [value, setValue] = useMyQueryState(
     'parameters',
-    {item: props.item, index: [0]},
+    {
+      item: props.item,
+      index: [0],
+      history: [] as Array<Array<number>>,
+    },
   )
 
   if (depth >= value.index.length) {
@@ -124,8 +120,8 @@ const Pipeline = <T,>(props: PipelineProps<T>): JSX.Element => {
     const newIndex = [...value.index];
     newIndex[depth] += 1;
     setValue(
-      {index: newIndex, item: x},
-      {index: [...value.index], item: x},
+      {index: newIndex, item: x, history: value.history.concat([value.index])},
+      {index: [...value.index], item: x, history: value.history},
     );
   };
 
@@ -133,9 +129,21 @@ const Pipeline = <T,>(props: PipelineProps<T>): JSX.Element => {
     const newIndex = [...value.index];
     newIndex[depth] = React.Children.toArray(props.children).length - 1;
     setValue(
-      {index: newIndex, item: x},
-      {index: [...value.index], item: x},
+      {index: newIndex, item: x, history: value.history.concat([value.index])},
+      {index: [...value.index], item: x, history: value.history},
     );
+  };
+
+  const goBack = () => {
+    if (value.history.length > 0) {
+      const newHistory = [...value.history];
+      const newIndex = newHistory.pop();
+      setValue({
+        index: newIndex ?? [],
+        item: value.item,
+        history: newHistory,
+      })
+    }
   };
 
   let child = React.Children.toArray(props.children).at(value.index[depth]);
@@ -148,6 +156,7 @@ const Pipeline = <T,>(props: PipelineProps<T>): JSX.Element => {
         jumpToEnd,
         item: value.item,
         depth: childDepth,
+        goBack,
       },
     );
   }
@@ -247,6 +256,8 @@ const SupplierView = (props: SupplierViewProps): JSX.Element => {
     }
   }, []);
 
+  const onGoBack = () => props.goBack !== undefined ? props.goBack() : undefined;
+
   return (
     <>
       <div className={styles.question}>Based on your answers, this supplier looks like the best option for you:</div>
@@ -269,6 +280,10 @@ const SupplierView = (props: SupplierViewProps): JSX.Element => {
           If this tool helped save you money,
           you can return the favor by <a href="https://www.buymeacoffee.com/mtaylor" target="_blank">buying the developers a coffee</a>.
         </p>
+        <br/>
+        <button className={styles.promptbutton} type="button" onClick={onGoBack} id="monthly-usage-next-button">
+          Edit Responses
+        </button>
       </div>
     </>
   );
@@ -342,6 +357,8 @@ const MonthlyUsageForm = (props: MonthlyUsageFormProps): JSX.Element => {
 
   const readyToSubmit = Array.from(monthToUsage.keys()).length === months.length;
 
+  const onGoBack = () => props.goBack !== undefined ? props.goBack() : undefined;
+
   return (
     <form onSubmit={onSubmit} className={styles.form}>
       <div className={styles.monthlyusageflex}>
@@ -355,6 +372,7 @@ const MonthlyUsageForm = (props: MonthlyUsageFormProps): JSX.Element => {
       </div>
       <button className={styles.promptbutton} type="button" onClick={onSkip} id="monthly-usage-not-sure-button">I&apos;m not sure</button>
       <button className={styles.promptbutton} type="submit" id="monthly-usage-next-button" disabled={!readyToSubmit}>Next</button>
+      <button className={styles.promptbutton} type="button" onClick={onGoBack} id="monthly-usage-next-button">Back</button>
     </form>
   );
 };
@@ -438,6 +456,8 @@ const SquareFootInputForm = (props: SquareFootInputProps): JSX.Element => {
 
   const readyToSubmit = !isNaN(squareFeet);
 
+  const onGoBack = () => props.goBack !== undefined ? props.goBack() : undefined;
+
   return (
     <form onSubmit={onSubmit} className={styles.form}>
       <input
@@ -452,6 +472,7 @@ const SquareFootInputForm = (props: SquareFootInputProps): JSX.Element => {
       <br/>
       <button className={styles.promptbutton} type="button" onClick={onSkip}>I&apos;m not sure</button>
       <button className={styles.promptbutton} type="submit" disabled={!readyToSubmit}>Next</button>
+      <button className={styles.promptbutton} type="button" onClick={onGoBack}>Back</button>
     </form>
   );
 };
@@ -504,6 +525,8 @@ const NumberOfBedroomsInputForm = (props: NumberOfBedroomsInputProps): JSX.Eleme
     }
   };
 
+  const onGoBack = () => props.goBack !== undefined ? props.goBack() : undefined;
+
   const readyToSubmit = !isNaN(bedrooms);
 
   return (
@@ -519,6 +542,7 @@ const NumberOfBedroomsInputForm = (props: NumberOfBedroomsInputProps): JSX.Eleme
         title="This field must be a number"/>
       <br/>
       <button className={styles.promptbutton} type="submit" disabled={!readyToSubmit}>Next</button>
+      <button className={styles.promptbutton} type="button" onClick={onGoBack}>Back</button>
     </form>
   );
 };
@@ -532,6 +556,8 @@ const VariableRateView = (props: VariableRateViewProps) => {
       });
     }
   };
+
+  const onGoBack = () => props.goBack !== undefined ? props.goBack() : undefined;
 
   return (
     <>
@@ -549,12 +575,15 @@ const VariableRateView = (props: VariableRateViewProps) => {
         </p>
       </div>
       <form className={styles.form}>
-        <button className={styles.promptbutton} type="button" onClick={() => onClick(true)}>
-          Yes, use variable rate suppliers.
-        </button>
-        <button className={styles.promptbutton} type="button" onClick={() => onClick(false)}>
+        <div className={styles.buttons}>
+          <button className={styles.promptbutton} type="button" onClick={() => onClick(true)}>
+            Yes, use variable rate suppliers.
+          </button>
+          <button className={styles.promptbutton} type="button" onClick={() => onClick(false)}>
           No, don&apos;t use variable rate suppliers.
-        </button>
+          </button>
+          <button className={styles.promptbutton} type="button" onClick={onGoBack}>Back</button>
+        </div>
       </form>
     </>
   );
@@ -569,6 +598,8 @@ const RenewablePreferenceView = (props: RenewablePreferenceViewProps): JSX.Eleme
       });
     }
   };
+
+  const onGoBack = () => props.goBack !== undefined ? props.goBack() : undefined;
 
   return (
     <>
@@ -596,6 +627,7 @@ const RenewablePreferenceView = (props: RenewablePreferenceViewProps): JSX.Eleme
         <button className={styles.promptbutton} type="button" onClick={() => onClick(50.0)}>
           Very important.
         </button>
+        <button className={styles.promptbutton} type="button" onClick={onGoBack}>Back</button>
       </form>
     </>
   );
@@ -628,6 +660,8 @@ const EmailInputView = (props: EmailInputViewProps): JSX.Element => {
       props.advance(newData);
     }
   };
+
+  const onGoBack = () => props.goBack !== undefined ? props.goBack() : undefined;
 
   return (
     <>
@@ -665,6 +699,7 @@ const EmailInputView = (props: EmailInputViewProps): JSX.Element => {
             onClick={advance}>
               No thanks.
           </button>
+          <button className={styles.promptbutton} type="button" onClick={onGoBack}>Back</button>
         </form>
       </div>
     </>
