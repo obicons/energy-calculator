@@ -201,6 +201,12 @@ const UtilitySelectionView = (props: UtilitySelectionViewProps): JSX.Element => 
         Question 1: Who is your utility provider?
       </div>
       <div className={styles.description}>
+        <Image
+          className={styles.clipart}
+          src="utility_icon.svg"
+          alt=""
+          width={150}
+          height={150}/>
         <div className={styles.buttons}>
           {
           utilityProviders.map((provider) => (
